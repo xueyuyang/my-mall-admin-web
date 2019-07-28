@@ -51,7 +51,7 @@
           </template>
         </el-table-column>
         <el-table-column label="排序" width="100" align="center">
-          <template slot-scope="scope">{{scope.row.sort }}</template>
+          <template slot-scope="scope">{{scope.row.sortOrder }}</template>
         </el-table-column>
         <el-table-column label="设置" width="200" align="center">
           <template slot-scope="scope">
@@ -138,8 +138,8 @@
         this.listLoading = true;
         fetchList(this.parentId, this.listQuery).then(response => {
           this.listLoading = false;
-          this.list = response.data.list;
-          this.total = response.data.total;
+          this.list = response.result.list;
+          this.total = parseInt(response.result.total);
         });
       },
       handleSizeChange(val) {

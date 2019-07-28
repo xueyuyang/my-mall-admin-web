@@ -9,7 +9,7 @@
         <div style="text-align: center">
           <svg-icon icon-class="login-mall" style="width: 56px;height: 56px;color: #409EFF"></svg-icon>
         </div>
-        <h2 class="login-title color-main">mall-admin-web</h2>
+        <h2 class="login-title color-main">my-mall-admin-web</h2>
         <el-form-item prop="username">
           <el-input name="username"
                     type="text"
@@ -36,6 +36,16 @@
           </span>
           </el-input>
         </el-form-item>
+        <el-form-item prop="captchaCode">
+          <el-input name="captchaCode"
+                    type="text"
+                    v-model="loginForm.captchaCode"
+                    autoComplete="on"
+                    placeholder="请输入验证码">
+            <img v-lazy="imageCode" slot="append" @click="getImage" :key="imageCode"/>
+          </el-input>
+          
+        </el-form-item>
         <el-form-item style="margin-bottom: 60px">
           <el-button style="width: 100%" type="primary" :loading="loading" @click.native.prevent="handleLogin">
             登录
@@ -44,22 +54,11 @@
       </el-form>
     </el-card>
     <img :src="login_center_bg" class="login-center-layout">
-    <el-dialog
-      title="特别赞助"
-      :visible.sync="dialogVisible"
-      width="30%">
-      <span>mall项目已由CODING特别赞助，点击去支持，页面加载完后点击<span class="color-main font-medium">免费体验</span>按钮即可完成支持，谢谢！</span>
-      <span slot="footer" class="dialog-footer">
-    <el-button @click="dialogCancel">残忍拒绝</el-button>
-    <el-button type="primary" @click="dialogConfirm">去支持</el-button>
-  </span>
-    </el-dialog>
   </div>
 </template>
 
 <script>
   import {isvalidUsername} from '@/utils/validate';
-  import {setSupport,getSupport,SupportUrl} from '@/utils/support';
   import login_center_bg from '@/assets/images/login_center_bg.png'
 
   export default {
@@ -80,9 +79,12 @@
         }
       };
       return {
+        imageCode: '',
+        deviceId: '',
         loginForm: {
           username: 'admin',
           password: '123456',
+          captchaCode: ''
         },
         loginRules: {
           username: [{required: true, trigger: 'blur', validator: validateUsername}],
@@ -94,7 +96,20 @@
         dialogVisible:false
       }
     },
+    mounted () {
+      this.getImage();
+    },
     methods: {
+      getImage() {
+        this.loginForm.deviceId = new Date().getTime();
+        let that = this;
+        this.$store.dispatch('GetImage', this.loginForm.deviceId).then(res => {
+        console.log("getImage")
+          that.imageCode = 'data:image/jpg;base64,' + res.result;
+        }).catch((err) => {
+
+        })
+      },
       showPwd() {
         if (this.pwdType === 'password') {
           this.pwdType = ''
@@ -105,11 +120,6 @@
       handleLogin() {
         this.$refs.loginForm.validate(valid => {
           if (valid) {
-            let isSupport = getSupport();
-            if(isSupport===undefined||isSupport==null){
-              this.dialogVisible =true;
-              return;
-            }
             this.loading = true;
             this.$store.dispatch('Login', this.loginForm).then(() => {
               this.loading = false;
@@ -122,15 +132,6 @@
             return false
           }
         })
-      },
-      dialogConfirm(){
-        this.dialogVisible =false;
-        setSupport(true);
-        window.location.href=SupportUrl;
-      },
-      dialogCancel(){
-        this.dialogVisible = false;
-        setSupport(false);
       }
     }
   }

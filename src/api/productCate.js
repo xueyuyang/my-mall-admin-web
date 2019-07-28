@@ -1,21 +1,21 @@
 import request from '@/utils/request'
 export function fetchList(parentId,params) {
   return request({
-    url:'/productCategory/list/'+parentId,
-    method:'get',
+    url:'/mdc/category/queryProductCategoryListByPid/'+parentId,
+    method:'post',
     params:params
   })
 }
 export function deleteProductCate(id) {
   return request({
-    url:'/productCategory/delete/'+id,
+    url:'/mdc/category/deleteById/'+id,
     method:'post'
   })
 }
 
 export function createProductCate(data) {
   return request({
-    url:'/productCategory/create',
+    url:'/mdc/category/create',
     method:'post',
     data:data
   })
@@ -23,7 +23,7 @@ export function createProductCate(data) {
 
 export function updateProductCate(id,data) {
   return request({
-    url:'/productCategory/update/'+id,
+    url:'/mdc/category/update/'+id,
     method:'post',
     data:data
   })
@@ -31,14 +31,14 @@ export function updateProductCate(id,data) {
 
 export function getProductCate(id) {
   return request({
-    url:'/productCategory/'+id,
-    method:'get',
+    url:'/mdc/category/'+id,
+    method:'post',
   })
 }
 
 export function updateShowStatus(data) {
   return request({
-    url:'/productCategory/update/showStatus',
+    url:'/mdc/category/modifyShowStatus',
     method:'post',
     data:data
   })
@@ -46,7 +46,7 @@ export function updateShowStatus(data) {
 
 export function updateNavStatus(data) {
   return request({
-    url:'/productCategory/update/navStatus',
+    url:'/mdc/category/modifyNavStatus',
     method:'post',
     data:data
   })
@@ -54,7 +54,14 @@ export function updateNavStatus(data) {
 
 export function fetchListWithChildren() {
   return request({
-    url:'/productCategory/list/withChildren',
-    method:'get'
+    url:'/mdc/category/getTree',
+    method:'post'
+  })
+}
+
+export function fetchAllCatList() {
+  return request({
+    url:'/mdc/category/getTree',
+    method:'post'
   })
 }

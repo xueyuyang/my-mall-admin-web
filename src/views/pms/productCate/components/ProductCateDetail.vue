@@ -8,7 +8,7 @@
         <el-input v-model="productCate.name"></el-input>
       </el-form-item>
       <el-form-item label="上级分类：">
-        <el-select v-model="productCate.parentId"
+        <el-select v-model="productCate.pid"
                    placeholder="请选择分类">
           <el-option
             v-for="item in selectProductCateList"
@@ -22,7 +22,7 @@
         <el-input v-model="productCate.productUnit"></el-input>
       </el-form-item>
       <el-form-item label="排序：">
-        <el-input v-model="productCate.sort"></el-input>
+        <el-input v-model="productCate.sortOrder"></el-input>
       </el-form-item>
       <el-form-item label="是否显示：">
         <el-radio-group v-model="productCate.showStatus">
@@ -37,7 +37,7 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="分类图标：">
-        <single-upload v-model="productCate.icon"></single-upload>
+        <single-upload v-model="productCate.imgId"></single-upload>
       </el-form-item>
       <el-form-item v-for="(filterProductAttr, index) in filterProductAttrList"
                     :label="index | filterLabelFilter"
@@ -75,14 +75,14 @@
 
   const defaultProductCate = {
     description: '',
-    icon: '',
+    imgId: '',
     keywords: '',
     name: '',
     navStatus: 0,
-    parentId: 0,
+    pid: "0",
     productUnit: '',
     showStatus: 0,
-    sort: 0,
+    sortOrder: 0,
     productAttributeIdList: []
   };
   export default {
@@ -113,30 +113,30 @@
     created() {
       if (this.isEdit) {
         getProductCate(this.$route.query.id).then(response => {
-          this.productCate = response.data;
+          this.productCate = response.result;
         });
-        getProductAttrInfo(this.$route.query.id).then(response => {
-          if (response.data != null && response.data.length > 0) {
-            this.filterProductAttrList = [];
-            for (let i = 0; i < response.data.length; i++) {
-              this.filterProductAttrList.push({
-                key: Date.now() + i,
-                value: [response.data[i].attributeCategoryId, response.data[i].attributeId]
-              })
-            }
-          }
-        });
+        // getProductAttrInfo(this.$route.query.id).then(response => {
+        //   if (response.data != null && response.data.length > 0) {
+        //     this.filterProductAttrList = [];
+        //     for (let i = 0; i < response.data.length; i++) {
+        //       this.filterProductAttrList.push({
+        //         key: Date.now() + i,
+        //         value: [response.data[i].attributeCategoryId, response.data[i].attributeId]
+        //       })
+        //     }
+        //   }
+        // });
       } else {
         this.productCate = Object.assign({}, defaultProductCate);
       }
       this.getSelectProductCateList();
-      this.getProductAttrCateList();
+      //this.getProductAttrCateList();
     },
     methods: {
       getSelectProductCateList() {
         fetchList(0, {pageSize: 100, pageNum: 1}).then(response => {
-          this.selectProductCateList = response.data.list;
-          this.selectProductCateList.unshift({id: 0, name: '无上级分类'});
+          this.selectProductCateList = response.result.list;
+          this.selectProductCateList.unshift({id: "0", name: '无上级分类'});
         });
       },
       getProductAttrCateList() {

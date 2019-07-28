@@ -4,7 +4,7 @@
       <el-steps :active="formatStepStatus(order.status)" finish-status="success" align-center>
         <el-step title="提交订单" :description="formatTime(order.createTime)"></el-step>
         <el-step title="支付订单" :description="formatTime(order.paymentTime)"></el-step>
-        <el-step title="平台发货" :description="formatTime(order.deliveryTime)"></el-step>
+        <el-step title="平台发货" :description="formatTime(order.sendTime)"></el-step>
         <el-step title="确认收货" :description="formatTime(order.receiveTime)"></el-step>
         <el-step title="完成评价" :description="formatTime(order.commentTime)"></el-step>
       </el-steps>
@@ -13,7 +13,7 @@
       <div class="operate-container">
         <i class="el-icon-warning color-danger" style="margin-left: 20px"></i>
         <span class="color-danger">当前订单状态：{{order.status | formatStatus}}</span>
-        <div class="operate-button-container" v-show="order.status===0">
+        <div class="operate-button-container" v-show="order.status===10">
           <el-button size="mini" @click="showUpdateReceiverDialog">修改收货人信息</el-button>
           <el-button size="mini">修改商品信息</el-button>
           <el-button size="mini" @click="showUpdateMoneyDialog">修改费用信息</el-button>
@@ -21,18 +21,18 @@
           <el-button size="mini" @click="showCloseOrderDialog">关闭订单</el-button>
           <el-button size="mini" @click="showMarkOrderDialog">备注订单</el-button>
         </div>
-        <div class="operate-button-container" v-show="order.status===1">
+        <div class="operate-button-container" v-show="order.status===20">
           <el-button size="mini" @click="showUpdateReceiverDialog">修改收货人信息</el-button>
           <el-button size="mini" @click="showMessageDialog">发送站内信</el-button>
           <el-button size="mini">取消订单</el-button>
           <el-button size="mini" @click="showMarkOrderDialog">备注订单</el-button>
         </div>
-        <div class="operate-button-container" v-show="order.status===2||order.status===3">
+        <div class="operate-button-container" v-show="order.status===40||order.status===50">
           <el-button size="mini" @click="showLogisticsDialog">订单跟踪</el-button>
           <el-button size="mini" @click="showMessageDialog">发送站内信</el-button>
           <el-button size="mini" @click="showMarkOrderDialog">备注订单</el-button>
         </div>
-        <div class="operate-button-container" v-show="order.status===4">
+        <div class="operate-button-container" v-show="order.status===40">
           <el-button size="mini" @click="handleDeleteOrder">删除订单</el-button>
           <el-button size="mini" @click="showMarkOrderDialog">备注订单</el-button>
         </div>
@@ -51,10 +51,10 @@
           <el-col :span="4" class="table-cell-title">订单类型</el-col>
         </el-row>
         <el-row>
-          <el-col :span="4" class="table-cell">{{order.orderSn}}</el-col>
+          <el-col :span="4" class="table-cell">{{order.orderNo}}</el-col>
           <el-col :span="4" class="table-cell">暂无</el-col>
-          <el-col :span="4" class="table-cell">{{order.memberUsername}}</el-col>
-          <el-col :span="4" class="table-cell">{{order.payType | formatPayType}}</el-col>
+          <el-col :span="4" class="table-cell">{{order.creator}}</el-col>
+          <el-col :span="4" class="table-cell">{{order.paymentType | formatPayType}}</el-col>
           <el-col :span="4" class="table-cell">{{order.sourceType | formatSourceType}}</el-col>
           <el-col :span="4" class="table-cell">{{order.orderType | formatOrderType}}</el-col>
         </el-row>
@@ -96,10 +96,10 @@
           <el-col :span="6" class="table-cell-title">收货地址</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell">{{order.receiverName}}</el-col>
-          <el-col :span="6" class="table-cell">{{order.receiverPhone}}</el-col>
-          <el-col :span="6" class="table-cell">{{order.receiverPostCode}}</el-col>
-          <el-col :span="6" class="table-cell">{{order | formatAddress}}</el-col>
+          <el-col :span="6" class="table-cell">{{order.shippingVo.receiverName}}</el-col>
+          <el-col :span="6" class="table-cell">{{order.shippingVo.receiverMobile}}</el-col>
+          <el-col :span="6" class="table-cell">{{order.shippingVo.receiverZip}}</el-col>
+          <el-col :span="6" class="table-cell">{{order.shippingVo | formatAddress}}</el-col>
         </el-row>
       </div>
       <div style="margin-top: 20px">
@@ -108,43 +108,37 @@
       </div>
       <el-table
         ref="orderItemTable"
-        :data="order.orderItemList"
+        :data="order.orderItemVoList"
         style="width: 100%;margin-top: 20px" border>
         <el-table-column label="商品图片" width="120" align="center">
           <template slot-scope="scope">
-            <img :src="scope.row.productPic" style="height: 80px">
+            <img :src="scope.row.productImage" style="height: 80px">
           </template>
         </el-table-column>
         <el-table-column label="商品名称" align="center">
           <template slot-scope="scope">
             <p>{{scope.row.productName}}</p>
-            <p>品牌：{{scope.row.productBrand}}</p>
           </template>
         </el-table-column>
         <el-table-column label="价格/货号" width="120" align="center">
           <template slot-scope="scope">
-            <p>价格：￥{{scope.row.productPrice}}</p>
+            <p>价格：￥{{scope.row.currentUnitPrice}}</p>
             <p>货号：{{scope.row.productSn}}</p>
-          </template>
-        </el-table-column>
-        <el-table-column label="属性" width="120" align="center">
-          <template slot-scope="scope">
-            {{scope.row.productAttr | formatProductAttr}}
           </template>
         </el-table-column>
         <el-table-column label="数量" width="120" align="center">
           <template slot-scope="scope">
-            {{scope.row.productQuantity}}
+            {{scope.row.quantity}}
           </template>
         </el-table-column>
         <el-table-column label="小计" width="120" align="center">
           <template slot-scope="scope">
-            ￥{{scope.row.productPrice*scope.row.productQuantity}}
+            ￥{{scope.row.totalPrice}}
           </template>
         </el-table-column>
       </el-table>
       <div style="float: right;margin: 20px">
-        合计：<span class="color-danger">￥{{order.totalAmount}}</span>
+        合计：<span class="color-danger">￥{{order.payment}}</span>
       </div>
       <div style="margin-top: 60px">
         <svg-icon icon-class="marker" style="color: #606266"></svg-icon>
@@ -152,32 +146,19 @@
       </div>
       <div class="table-layout">
         <el-row>
-          <el-col :span="6" class="table-cell-title">商品合计</el-col>
-          <el-col :span="6" class="table-cell-title">运费</el-col>
-          <el-col :span="6" class="table-cell-title">优惠券</el-col>
-          <el-col :span="6" class="table-cell-title">积分抵扣</el-col>
+          <el-col :span="5" class="table-cell-title">商品合计</el-col>
+          <el-col :span="4" class="table-cell-title">运费</el-col>
+          <el-col :span="5" class="table-cell-title">调整金额</el-col>
+          <el-col :span="5" class="table-cell-title">订单总金额</el-col>
+          <el-col :span="5" class="table-cell-title">应付款金额</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell">￥{{order.totalAmount}}</el-col>
-          <el-col :span="6" class="table-cell">￥{{order.freightAmount}}</el-col>
-          <el-col :span="6" class="table-cell">-￥{{order.couponAmount}}</el-col>
-          <el-col :span="6" class="table-cell">-￥{{order.integrationAmount}}</el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="6" class="table-cell-title">活动优惠</el-col>
-          <el-col :span="6" class="table-cell-title">折扣金额</el-col>
-          <el-col :span="6" class="table-cell-title">订单总金额</el-col>
-          <el-col :span="6" class="table-cell-title">应付款金额</el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="6" class="table-cell">-￥{{order.promotionAmount}}</el-col>
-          <el-col :span="6" class="table-cell">-￥{{order.discountAmount}}</el-col>
-          <el-col :span="6" class="table-cell">
-            <span class="color-danger">￥{{order.totalAmount+order.freightAmount}}</span>
-          </el-col>
-          <el-col :span="6" class="table-cell">
-            <span class="color-danger">￥{{order.payAmount+order.freightAmount-order.discountAmount}}</span>
-          </el-col>
+          <el-col :span="5" class="table-cell">￥{{order.payment}}</el-col>
+          <el-col :span="4" class="table-cell">￥{{order.postage}}</el-col>
+          <el-col :span="5" class="table-cell">-￥{{order.adjustAmount}}</el-col>
+          <el-col :span="5" class="table-cell">￥{{order.payment+order.postage}}</el-col>
+          <el-col :span="5" class="table-cell">￥{{order.payment+order.postage-order.adjustAmount}}</el-col>
+
         </el-row>
       </div>
       <div style="margin-top: 20px">
@@ -383,15 +364,22 @@
       }
     },
     created() {
-      this.id = this.list = this.$route.query.id;
-      getOrderDetail(this.id).then(response => {
-        this.order = response.data;
+      this.orderNo = this.list = this.$route.query.orderNo;
+      getOrderDetail(this.orderNo).then(response => {
+        this.order = response.result;
       });
     },
     filters: {
       formatNull(value) {
         if(value===undefined||value===null||value===''){
           return '暂无';
+        }else{
+          return value;
+        }
+      },
+      formatMoneyNull(value) {
+        if(value===undefined||value===null||value===''){
+          return "0.00";
         }else{
           return value;
         }
@@ -428,28 +416,30 @@
           return '正常订单';
         }
       },
-      formatAddress(order) {
-        let str = order.receiverProvince;
-        if (order.receiverCity != null) {
-          str += "  " + order.receiverCity;
+      formatAddress(shippingVo) {
+        let str = shippingVo.receiverProvince;
+        if (shippingVo.receiverCity != null) {
+          str += "  " + shippingVo.receiverCity;
         }
-        str += "  " + order.receiverRegion;
-        str += "  " + order.receiverDetailAddress;
+        str += "  " + shippingVo.receiverDistrict;
+        str += "  " + shippingVo.receiverAddress;
         return str;
       },
       formatStatus(value) {
-        if (value === 1) {
-          return '待发货';
-        } else if (value === 2) {
+        if (value === 0) {
+          return '已取消';
+        } else if (value === 10) {
+          return '未付款';
+        } else if (value === 20) {
+          return '已付款';
+        } else if (value === 40) {
           return '已发货';
-        } else if (value === 3) {
-          return '已完成';
-        } else if (value === 4) {
-          return '已关闭';
-        } else if (value === 5) {
-          return '无效订单';
+        } else if (value === 50) {
+          return '交易成功';
+        } else if (value === 40) {
+          return '交易关闭';
         } else {
-          return '待付款';
+          return '未付款';
         }
       },
       formatPayStatus(value) {
@@ -539,7 +529,7 @@
               message: '修改成功!'
             });
             getOrderDetail(this.id).then(response => {
-              this.order = response.data;
+              this.order = response.result;
             });
           });
         });
@@ -564,7 +554,7 @@
               message: '修改成功!'
             });
             getOrderDetail(this.id).then(response => {
-              this.order = response.data;
+              this.order = response.result;
             });
           });
         });
@@ -608,7 +598,7 @@
                 message: '订单关闭成功!'
               });
               getOrderDetail(this.id).then(response => {
-                this.order = response.data;
+                this.order = response.result;
               });
             });
         });
@@ -635,7 +625,7 @@
               message: '订单备注成功!'
             });
             getOrderDetail(this.id).then(response => {
-              this.order = response.data;
+              this.order = response.result;
             });
           });
         });

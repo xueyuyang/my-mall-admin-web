@@ -1,9 +1,9 @@
 import request from '@/utils/request'
-export function fetchList(params) {
+export function fetchList(data) {
   return request({
-    url:'/product/list',
-    method:'get',
-    params:params
+    url:'/mdc/product/queryProductListWithPage',
+    method:'post',
+    data:data
   })
 }
 
@@ -17,7 +17,7 @@ export function fetchSimpleList(params) {
 
 export function updateDeleteStatus(params) {
   return request({
-    url:'/product/update/deleteStatus',
+    url:'/mdc/product/update/deleteStatus',
     method:'post',
     params:params
   })
@@ -25,7 +25,7 @@ export function updateDeleteStatus(params) {
 
 export function updateNewStatus(params) {
   return request({
-    url:'/product/update/newStatus',
+    url:'/mdc/product/update/newStatus',
     method:'post',
     params:params
   })
@@ -33,7 +33,7 @@ export function updateNewStatus(params) {
 
 export function updateRecommendStatus(params) {
   return request({
-    url:'/product/update/recommendStatus',
+    url:'/mdc/product/update/recommendStatus',
     method:'post',
     params:params
   })
@@ -41,7 +41,7 @@ export function updateRecommendStatus(params) {
 
 export function updatePublishStatus(params) {
   return request({
-    url:'/product/update/publishStatus',
+    url:'/mdc/product/update/publishStatus',
     method:'post',
     params:params
   })
@@ -49,15 +49,16 @@ export function updatePublishStatus(params) {
 
 export function createProduct(data) {
   return request({
-    url:'/product/create',
+    url:'/mdc/product/save',
     method:'post',
     data:data
   })
 }
 
 export function updateProduct(id,data) {
+  data.id = id;
   return request({
-    url:'/product/update/'+id,
+    url:'/mdc/product/save/',
     method:'post',
     data:data
   })
@@ -65,8 +66,8 @@ export function updateProduct(id,data) {
 
 export function getProduct(id) {
   return request({
-    url:'/product/updateInfo/'+id,
-    method:'get',
+    url:'/mdc/product/getById/'+id,
+    method:'post',
   })
 }
 

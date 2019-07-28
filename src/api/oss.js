@@ -5,3 +5,14 @@ export function policy() {
     method:'get',
   })
 }
+
+export function queryAttachmentById(id) {
+	return request({
+    url:'/opc/file/queryAttachmentById/'+id,
+    method:'post',
+  })
+}
+
+export async function queryAttachmentByIdSync(id) {
+	return await queryAttachmentById(id);
+}

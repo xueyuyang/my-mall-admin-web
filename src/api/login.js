@@ -1,26 +1,49 @@
 import request from '@/utils/request'
 
-export function login(username, password) {
+export function login(username, password, imageCode, deviceId) {
   return request({
-    url: '/admin/login',
+    url: '/uac/auth/form',
     method: 'post',
-    data: {
-      username,
-      password
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'deviceId': deviceId
+    },
+    auth: {
+      username: 'paascloud-client-uac',
+      password: 'paascloudClientSecret'
+    },
+    params: {
+      "username" : username,
+      "password" : password,
+      "imageCode" : imageCode
+    }
+  })
+}
+
+export function getImage(deviceId) {
+  return request({
+    url: '/uac/auth/code/image',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'deviceId': deviceId
     }
   })
 }
 
 export function getInfo() {
   return request({
-    url: '/admin/info',
-    method: 'get',
+    url: '/uac/user/getInformation',
+    method: 'post',
   })
 }
 
-export function logout() {
+export function logout(accessToken) {
   return request({
-    url: '/admin/logout',
-    method: 'post'
+    url: '/uac/user/logout',
+    method: 'post',
+    params: {
+      "accessToken" : accessToken
+    }
   })
 }

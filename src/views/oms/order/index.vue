@@ -21,7 +21,7 @@
       <div style="margin-top: 15px">
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
           <el-form-item label="输入搜索：">
-            <el-input v-model="listQuery.orderSn" class="input-width" placeholder="订单编号"></el-input>
+            <el-input v-model="listQuery.orderNo" class="input-width" placeholder="订单编号"></el-input>
           </el-form-item>
           <el-form-item label="收货人：">
             <el-input v-model="listQuery.receiverKeyword" class="input-width" placeholder="收货人姓名/手机号码"></el-input>
@@ -80,19 +80,19 @@
           <template slot-scope="scope">{{scope.row.id}}</template>
         </el-table-column>
         <el-table-column label="订单编号" width="180" align="center">
-          <template slot-scope="scope">{{scope.row.orderSn}}</template>
+          <template slot-scope="scope">{{scope.row.orderNo}}</template>
         </el-table-column>
         <el-table-column label="提交时间" width="180" align="center">
-          <template slot-scope="scope">{{scope.row.createTime | formatCreateTime}}</template>
+          <template slot-scope="scope">{{scope.row.createdTime | formatCreateTime}}</template>
         </el-table-column>
         <el-table-column label="用户账号" align="center">
-          <template slot-scope="scope">{{scope.row.memberUsername}}</template>
+          <template slot-scope="scope">{{scope.row.creator}}</template>
         </el-table-column>
         <el-table-column label="订单金额" width="120" align="center">
-          <template slot-scope="scope">￥{{scope.row.totalAmount}}</template>
+          <template slot-scope="scope">￥{{scope.row.payment}}</template>
         </el-table-column>
         <el-table-column label="支付方式" width="120" align="center">
-          <template slot-scope="scope">{{scope.row.payType | formatPayType}}</template>
+          <template slot-scope="scope">{{scope.row.paymentType | formatPayType}}</template>
         </el-table-column>
         <el-table-column label="订单来源" width="120" align="center">
           <template slot-scope="scope">{{scope.row.sourceType | formatSourceType}}</template>
@@ -185,7 +185,7 @@
   const defaultListQuery = {
     pageNum: 1,
     pageSize: 10,
-    orderSn: null,
+    orderNo: null,
     receiverKeyword: null,
     status: null,
     orderType: null,
@@ -210,24 +210,20 @@
         },
         statusOptions: [
           {
-            label: '待付款',
+            label: '已取消',
             value: 0
           },
           {
-            label: '待发货',
-            value: 1
+            label: '未付款',
+            value: 10
+          },
+          {
+            label: '已付款',
+            value: 20
           },
           {
             label: '已发货',
-            value: 2
-          },
-          {
-            label: '已完成',
-            value: 3
-          },
-          {
-            label: '已关闭',
-            value: 4
+            value: 40
           }
         ],
         orderTypeOptions: [
@@ -292,18 +288,20 @@
         }
       },
       formatStatus(value) {
-        if (value === 1) {
-          return '待发货';
-        } else if (value === 2) {
+        if (value === 0) {
+          return '已取消';
+        } else if (value === 10) {
+          return '未付款';
+        } else if (value === 20) {
+          return '已付款';
+        } else if (value === 40) {
           return '已发货';
-        } else if (value === 3) {
-          return '已完成';
-        } else if (value === 4) {
-          return '已关闭';
-        } else if (value === 5) {
-          return '无效订单';
+        } else if (value === 50) {
+          return '交易成功';
+        } else if (value === 40) {
+          return '交易关闭';
         } else {
-          return '待付款';
+          return '未付款';
         }
       },
     },
@@ -319,7 +317,7 @@
         this.multipleSelection = val;
       },
       handleViewOrder(index, row){
-        this.$router.push({path:'/oms/orderDetail',query:{id:row.id}})
+        this.$router.push({path:'/oms/orderDetail',query:{orderNo:row.orderNo}})
       },
       handleCloseOrder(index, row){
         this.closeOrder.dialogVisible=true;
@@ -415,8 +413,8 @@
         this.listLoading = true;
         fetchList(this.listQuery).then(response => {
           this.listLoading = false;
-          this.list = response.data.list;
-          this.total = response.data.total;
+          this.list = response.result.list;
+          this.total = response.result.total;
         });
       },
       deleteOrder(ids){
@@ -441,7 +439,7 @@
         let address=order.receiverProvince+order.receiverCity+order.receiverRegion+order.receiverDetailAddress;
         let listItem={
           orderId:order.id,
-          orderSn:order.orderSn,
+          orderNo:order.orderNo,
           receiverName:order.receiverName,
           receiverPhone:order.receiverPhone,
           receiverPostCode:order.receiverPostCode,

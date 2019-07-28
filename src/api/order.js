@@ -1,9 +1,9 @@
 import request from '@/utils/request'
-export function fetchList(params) {
+export function fetchList(data) {
   return request({
-    url:'/order/list',
-    method:'get',
-    params:params
+    url:'/omc/order/queryOrderListWithPage',
+    method:'post',
+    data:data
   })
 }
 
@@ -31,10 +31,10 @@ export function deliveryOrder(data) {
   });
 }
 
-export function getOrderDetail(id) {
+export function getOrderDetail(orderNo) {
   return request({
-    url:'/order/'+id,
-    method:'get'
+    url:'/omc/order/queryUserOrderDetail/'+orderNo,
+    method:'post'
   });
 }
 

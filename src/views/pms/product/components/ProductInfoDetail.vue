@@ -1,7 +1,7 @@
 <template>
   <div style="margin-top: 50px">
     <el-form :model="value" :rules="rules" ref="productInfoForm" label-width="120px" style="width: 600px" size="small">
-      <el-form-item label="商品分类：" prop="productCategoryId">
+      <el-form-item label="商品分类：" prop="categoryId">
         <el-cascader
           v-model="selectProductCateValue"
           :options="productCateOptions">
@@ -10,21 +10,8 @@
       <el-form-item label="商品名称：" prop="name">
         <el-input v-model="value.name"></el-input>
       </el-form-item>
-      <el-form-item label="副标题：" prop="subTitle">
-        <el-input v-model="value.subTitle"></el-input>
-      </el-form-item>
-      <el-form-item label="商品品牌：" prop="brandId">
-        <el-select
-          v-model="value.brandId"
-          @change="handleBrandChange"
-          placeholder="请选择品牌">
-          <el-option
-            v-for="item in brandOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value">
-          </el-option>
-        </el-select>
+      <el-form-item label="副标题：" prop="subtitle">
+        <el-input v-model="value.subtitle"></el-input>
       </el-form-item>
       <el-form-item label="商品介绍：">
         <el-input
@@ -89,7 +76,7 @@
             {min: 2, max: 140, message: '长度在 2 到 140 个字符', trigger: 'blur'}
           ],
           subTitle: [{required: true, message: '请输入商品副标题', trigger: 'blur'}],
-          productCategoryId: [{required: true, message: '请选择商品分类', trigger: 'blur'}],
+          categoryId: [{required: true, message: '请选择商品分类', trigger: 'blur'}],
           brandId: [{required: true, message: '请选择商品品牌', trigger: 'blur'}],
           description: [{required: true, message: '请输入商品介绍', trigger: 'blur'}],
           requiredProp: [{required: true, message: '该项为必填项', trigger: 'blur'}]
@@ -98,7 +85,7 @@
     },
     created() {
       this.getProductCateList();
-      this.getBrandList();
+      //this.getBrandList();
     },
     computed:{
       //商品的编号
@@ -115,26 +102,26 @@
       },
       selectProductCateValue: function (newValue) {
         if (newValue != null && newValue.length === 2) {
-          this.value.productCategoryId = newValue[1];
-          this.value.productCategoryName= this.getCateNameById(this.value.productCategoryId);
+          this.value.categoryId = newValue[1];
+          this.value.categoryName= this.getCateNameById(this.value.categoryId);
         } else {
-          this.value.productCategoryId = null;
-          this.value.productCategoryName=null;
+          this.value.categoryId = null;
+          this.value.categoryName=null;
         }
       }
     },
     methods: {
       //处理编辑逻辑
       handleEditCreated(){
-        if(this.value.productCategoryId!=null){
-          this.selectProductCateValue.push(this.value.cateParentId);
-          this.selectProductCateValue.push(this.value.productCategoryId);
+        if(this.value.categoryIdList!=null){
+          this.selectProductCateValue.push(this.value.categoryIdList[0]);
+          this.selectProductCateValue.push(this.value.categoryIdList[1]);
         }
         this.hasEditCreated=true;
       },
       getProductCateList() {
         fetchListWithChildren().then(response => {
-          let list = response.data;
+          let list = response.result;
           this.productCateOptions = [];
           for (let i = 0; i < list.length; i++) {
             let children = [];
@@ -144,15 +131,6 @@
               }
             }
             this.productCateOptions.push({label: list[i].name, value: list[i].id, children: children});
-          }
-        });
-      },
-      getBrandList() {
-        fetchBrandList({pageNum: 1, pageSize: 100}).then(response => {
-          this.brandOptions = [];
-          let brandList = response.data.list;
-          for (let i = 0; i < brandList.length; i++) {
-            this.brandOptions.push({label: brandList[i].name, value: brandList[i].id});
           }
         });
       },
@@ -181,16 +159,6 @@
             return false;
           }
         });
-      },
-      handleBrandChange(val) {
-        let brandName = '';
-        for (let i = 0; i < this.brandOptions.length; i++) {
-          if (this.brandOptions[i].value === val) {
-            brandName = this.brandOptions[i].label;
-            break;
-          }
-        }
-        this.value.brandName = brandName;
       }
     }
   }

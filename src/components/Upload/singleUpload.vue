@@ -1,8 +1,9 @@
 <template> 
   <div>
     <el-upload
-      action="http://macro-oss.oss-cn-shenzhen.aliyuncs.com"
+      action="http://dev-api.paascloud.net:7979/opc/file/uploadSingleImg"
       :data="dataObj"
+      :headers="headersObj"
       list-type="picture"
       :multiple="false" :show-file-list="showFileList"
       :file-list="fileList"
@@ -19,49 +20,79 @@
   </div>
 </template>
 <script>
-  import {policy} from '@/api/oss'
+  import {policy, queryAttachmentByIdSync, queryAttachmentById} from '@/api/oss'
 
   export default {
     name: 'singleUpload',
     props: {
       value: String
     },
+    
+    watch: {
+      value: {
+    　　handler(newName, oldName) {
+      　　if (newName != null && newName != '') {
+            console.log(newName);
+            queryAttachmentById(this.value).then(res => {
+              console.log(res)
+              if (res && res.result) {
+                  this.imageName = res.result.name,
+                  this.imageUrl = 'http://psb7edjec.bkt.clouddn.com/' + res.result.path + res.result.name
+              }
+            })
+          }
+    　　},
+    　　immediate: true
+      }
+    } ,
     computed: {
-      imageUrl() {
-        return this.value;
-      },
-      imageName() {
-        if (this.value != null && this.value !== '') {
-          return this.value.substr(this.value.lastIndexOf("/") + 1);
-        } else {
-          return null;
-        }
-      },
+      // imageUrl() {
+      //   return this.value;
+      // },
+      // imageName() {
+      //   if (this.value != null && this.value !== '') {
+      //     return this.value.substr(this.value.lastIndexOf("/") + 1);
+      //   } else {
+      //     return null;
+      //   }
+      // },
       fileList() {
-        return [{
-          name: this.imageName,
-          url: this.imageUrl
-        }]
+        if (this.imageName != null && this.imageName != ''
+          && this.imageUrl != null && this.imageUrl != '') {
+          return [{
+            name: this.imageName,
+            url: this.imageUrl
+          }];
+        } else {
+          return [{
+          }]
+        }
+        
       },
       showFileList: {
         get: function () {
-          return this.value !== null && this.value !== ''&& this.value!==undefined;
+          return this.imageUrl !== null && this.imageUrl !== ''&& this.imageUrl!==undefined;
         },
         set: function (newValue) {
         }
-      }
+      },
+
     },
     data() {
       return {
         dataObj: {
-          policy: '',
-          signature: '',
-          key: '',
-          ossaccessKeyId: '',
-          dir: '',
-          host: ''
+          fileType: 'picture',
+          filePath: '',
+          bucketName: 'open-img-bucket',
+          userId: '',
+          userName: ''
         },
-        dialogVisible: false
+        headersObj: {
+          Authorization: ''
+        },
+        dialogVisible: false,
+        imageUrl: '',
+        imageName: ''
       };
     },
     methods: {
@@ -76,26 +107,22 @@
       },
       beforeUpload(file) {
         let _self = this;
-        return new Promise((resolve, reject) => {
-          policy().then(response => {
-            _self.dataObj.policy = response.data.policy;
-            _self.dataObj.signature = response.data.signature;
-            _self.dataObj.ossaccessKeyId = response.data.accessKeyId;
-            _self.dataObj.key = response.data.dir + '/${filename}';
-            _self.dataObj.dir = response.data.dir;
-            _self.dataObj.host = response.data.host;
-            resolve(true)
-          }).catch(err => {
-            console.log(err)
-            reject(false)
-          })
+        this.$store.dispatch('get_access_token', (res) => {
+          if (res) {
+            _self.headersObj.Authorization = 'Bearer ' + res;
+          } else {
+            console.log(res);
+          }
+          
         })
       },
       handleUploadSuccess(res, file) {
         this.showFileList = true;
-        this.fileList.pop();
-        this.fileList.push({name: file.name, url: this.dataObj.host + '/' + this.dataObj.dir + '/' + file.name});
-        this.emitInput(this.fileList[0].url);
+        this.imageName = file.name;
+        this.imageUrl = 'http://' + res.result.attachmentUrl;
+        //this.fileList.pop();
+        //this.fileList.push({name: file.name, url: 'http://' + res.result.attachmentUrl});
+        this.emitInput(res.result.attachmentId);
       }
     }
   }
